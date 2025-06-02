@@ -252,3 +252,91 @@ definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
 # --- Barra Lateral (Sidebar) ---
 st.sidebar.header("Acerca de")
 st.sidebar.info(
+    "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
+    "cuya funcionalidad actual es poder visualizar el 'Retiulado' o 'Lattice' "
+    "de la Tabla Virtual para Cálculos Visuales DAX, esto para ayudar a entender "
+    "la estructura lógica sobre la que operan dichos cálculos."
+)
+
+st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
+texto_curso_intro = "El curso "
+nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
+texto_curso_descripcion = (
+    " de Power Elite Studio es curso/capacitación "
+    "número uno en español para dominar el Lenguaje DAX de básico a experto y estar "
+    "en constante actualización."
+)
+curso_dax_texto_completo_html = texto_curso_intro + nombre_curso_html_link + texto_curso_descripcion
+st.sidebar.markdown(
+    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
+    unsafe_allow_html=True
+)
+
+st.sidebar.subheader("Autor")
+st.sidebar.markdown(
+    "Microsoft MVP Miguel Caballero, [www.powerelite.studio](https://www.powerelite.studio)"
+)
+# --- Fin de la Barra Lateral (Sidebar) ---
+
+ejemplo_dax = """AXIS rows
+    GROUP [Anio]
+    GROUP [Trimestre]
+    GROUP [Mes]
+AXIS columns
+    GROUP [Categoria]
+    GROUP [Subcategoria]
+    GROUP [Producto]
+"""
+
+dax_clause_input = st.text_area(
+    "Introduce tu cláusula `WITH VISUAL SHAPE` (o el contenido desde `AXIS ROWS`):",
+    height=250,
+    placeholder=ejemplo_dax
+)
+
+if st.button("🔍 Generar Gráfico del Reticulado"):
+    if dax_clause_input.strip():
+        if not HAS_PYDOT_AND_GRAPHVIZ: 
+             st.warning("⚠️ Layout jerárquico (Graphviz) no disponible o no detectado. Se usará un layout alternativo. Asegúrate de que Graphviz esté instalado y en el PATH del sistema donde se ejecuta esta app si es localmente, o que esté incluido en `packages.txt` si se despliega en Streamlit Cloud.")
+             
+        with st.spinner("Analizando DAX y generando gráfico... ⏳"):
+            parsed_struct = parse_visual_shape(dax_clause_input)
+            fig = None 
+            
+            if parsed_struct.get("ROWS") or parsed_struct.get("COLUMNS") or (not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS") and dax_clause_input.strip()):
+                 fig = create_precise_lattice_figure(parsed_struct)
+
+            if parsed_struct: 
+                tab_graph_title = "📊 Gráfico del Reticulado"
+                tab_data_title = "⚙️ Estructura Parseada"
+                
+                tab1, tab2 = st.tabs([tab_graph_title, tab_data_title])
+
+                with tab1:
+                    if not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS"):
+                        st.info("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal del reticulado.")
+                        if fig: 
+                             st.pyplot(fig)
+                    elif not parsed_struct.get("ROWS") or not parsed_struct.get("COLUMNS"):
+                         st.info("Se requieren campos tanto en ROWS como en COLUMNS para el reticulado completo de intersecciones. Se mostrará la jerarquía de un solo eje si está definida.")
+                         if fig:
+                             st.pyplot(fig)
+                         else:
+                             st.info("No se pudo generar el gráfico parcial.")
+                    else: 
+                        if fig:
+                            st.pyplot(fig)
+                        else:
+                            st.error("No se pudo generar la figura del gráfico.")
+                
+                with tab2:
+                    st.subheader("Datos de la Estructura Parseada")
+                    st.json(parsed_struct)
+            
+            elif not dax_clause_input.strip():
+                 pass 
+            else: 
+                st.error("No se pudo parsear la entrada para generar una estructura.")
+
+    else:
+        st.warning("Por favor, introduce una cláusula DAX para visualizar.")
