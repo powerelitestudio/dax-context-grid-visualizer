@@ -174,6 +174,7 @@ def create_precise_lattice_figure(parsed_structure: dict):
             pos = graphviz_layout(G, prog='dot')
             layout_engine_used = "Graphviz 'dot' Layout ✨"
         except Exception as e_layout:
+            # Este error se muestra en la UI si graphviz_layout falla
             st.error(f"❌ Falló el intento de usar `graphviz_layout(G, prog='dot')`: {type(e_layout).__name__}: {e_layout}")
             st.warning("Se usará 'spring_layout' como alternativa debido al error anterior.")
             pos = None 
@@ -193,9 +194,9 @@ def create_precise_lattice_figure(parsed_structure: dict):
                                arrows=True, arrowstyle='-|>', arrowsize=10) 
         ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14)
     else:
-        if num_nodes > 1 and pos is None:
+        if num_nodes > 1 and pos is None: # Si había nodos pero no se pudo calcular pos
              st.error("No se pudo calcular la posición de los nodos para el gráfico.")
-        return None 
+        return None # Devuelve None si no se pudo generar el gráfico
     
     fig.tight_layout() 
     return fig
@@ -205,9 +206,8 @@ st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide")
 
 st.image("https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png", width=100)
 
-st.title("Visualizador del Reticulado en DAX") # Título ya modificado en paso anterior
+st.title("Visualizador del Reticulado en DAX")
 
-# MODIFICACIÓN DEL TEXTO INTRODUCTORIO:
 st.markdown("""
 Esta herramienta te ayuda a visualizar la estructura jerárquica (el "reticulado") 
 definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
@@ -223,16 +223,15 @@ st.sidebar.info(
 )
 
 st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
-# MODIFICACIÓN: 'Magíster en Lenguaje DAX' ahora es el enlace en negrita y subrayado
-curso_nombre_linkeado = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
-texto_descriptivo_curso = (
-    f"El curso {curso_nombre_linkeado} de Power Elite Studio es curso/capacitación "
+texto_curso_parte_1 = (
+    "El curso 'Magíster en Lenguaje DAX' de Power Elite Studio es curso/capacitación "
     "número uno en español para dominar el Lenguaje DAX de básico a experto y estar "
-    "en constante actualización."
+    "en constante actualización: "
 )
-
+enlace_html_curso = '<a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">clic aquí para conocer más</a>.'
+curso_dax_texto_completo = texto_curso_parte_1 + enlace_html_curso
 st.sidebar.markdown(
-    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{texto_descriptivo_curso}</div>',
+    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo}</div>',
     unsafe_allow_html=True
 )
 
@@ -266,26 +265,45 @@ if st.button("🔍 Generar Gráfico del Reticulado"):
              
         with st.spinner("Analizando DAX y generando gráfico... ⏳"):
             parsed_struct = parse_visual_shape(dax_clause_input)
+            fig = None # Inicializar fig
             
-            st.subheader("Estructura Parseada (para referencia):")
-            st.json(parsed_struct)
-
-            if not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS"):
-                st.warning("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal del reticulado.")
-            elif not parsed_struct.get("ROWS") or not parsed_struct.get("COLUMNS"):
-                 st.warning("Se requieren campos tanto en ROWS como en COLUMNS para el reticulado completo de intersecciones. Se mostrará la jerarquía de un solo eje si está definida.")
+            # Intentar generar la figura siempre que haya algo parseado
+            if parsed_struct.get("ROWS") or parsed_struct.get("COLUMNS") or (not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS") and dax_clause_input.strip()): # Aunque no haya rows/cols, puede haber un nodo raíz
                  fig = create_precise_lattice_figure(parsed_struct)
-                 if fig:
-                     st.subheader("Gráfico del Reticulado (parcial):")
-                     st.pyplot(fig)
-                 else:
-                     st.info("No se generó ningún gráfico (posiblemente solo nodo raíz).")
-            else:
-                fig = create_precise_lattice_figure(parsed_struct)
-                if fig:
-                    st.subheader("Gráfico del Reticulado:")
-                    st.pyplot(fig)
-                else:
-                    st.error("No se pudo generar la figura del gráfico.")
+
+            # --- MODIFICACIÓN: USO DE PESTAÑAS (TABS) ---
+            if parsed_struct: # Solo mostrar pestañas si hay algo parseado
+                tab_graph_title = "📊 Gráfico del Reticulado"
+                tab_data_title = "⚙️ Estructura Parseada"
+                
+                tab1, tab2 = st.tabs([tab_graph_title, tab_data_title])
+
+                with tab1:
+                    if not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS"):
+                        st.info("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal del reticulado. El nodo raíz se muestra si está definido.")
+                        if fig: # Para el caso de solo nodo raíz si se implementara así
+                             st.pyplot(fig)
+                    elif not parsed_struct.get("ROWS") or not parsed_struct.get("COLUMNS"):
+                         st.info("Se requieren campos tanto en ROWS como en COLUMNS para el reticulado completo de intersecciones. Se mostrará la jerarquía de un solo eje si está definida.")
+                         if fig:
+                             st.pyplot(fig)
+                         else:
+                             st.info("No se pudo generar el gráfico parcial.")
+                    else: # Caso normal con ROWS y COLUMNS
+                        if fig:
+                            st.pyplot(fig)
+                        else:
+                             # Este error ya se mostraría dentro de create_precise_lattice_figure si pos es None
+                            st.error("No se pudo generar la figura del gráfico.")
+                
+                with tab2:
+                    st.subheader("Datos de la Estructura Parseada")
+                    st.json(parsed_struct)
+            
+            elif not dax_clause_input.strip(): # Si no hubo entrada, pero se presionó el botón
+                 pass # El warning de abajo ya lo maneja
+            else: # Si parsed_struct está vacío por alguna razón no cubierta
+                st.error("No se pudo parsear la entrada para generar una estructura.")
+
     else:
         st.warning("Por favor, introduce una cláusula DAX para visualizar.")
