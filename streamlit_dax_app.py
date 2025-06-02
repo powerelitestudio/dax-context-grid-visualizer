@@ -203,73 +203,85 @@ def create_precise_lattice_figure(parsed_structure: dict):
 # --- Interfaz de Usuario con Streamlit ---
 st.set_page_config(page_title="Context Grid Visualizer", layout="wide")
 
-col_logo, col_titulo = st.columns([1, 5]) 
+# CSS para ajustes finos de estilo (si es necesario)
+# Este CSS intenta ajustar el padding del título en la sidebar.
+st.markdown("""
+    <style>
+        /* Ajuste para el título H3 en la sidebar al lado del logo */
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div[data-testid="stMarkdownContainer"] h3 {
+            padding-top: 0.6em !important; /* Ajusta este valor para alinear verticalmente el texto con el logo */
+            margin-top: 0em !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-with col_logo:
-    # MODIFICACIÓN: Aumentar tamaño del logo de Context Grid
-    st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=90) # Ajusta el 'width' si es necesario
 
-with col_titulo:
-    st.markdown("""
-        <style>
-            div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] h1 {
-                padding-top: 0.5rem; 
-                margin-top: 0.2rem; 
-            }
-        </style>
-    """, unsafe_allow_html=True)
-    st.title("Context Grid") # Título ya modificado
+# --- Barra Lateral (Sidebar) ---
 
+# MODIFICACIÓN: Logo y Título de la App "Context Grid" al inicio de la Sidebar
+with st.sidebar: # Agrupa los elementos de la sidebar para mayor claridad
+    s_col_logo, s_col_titulo_app = st.columns([1, 3]) # Proporción para logo y título de app
+    with s_col_logo:
+        st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=60) # Logo de Context Grid, ajusta width
+    with s_col_titulo_app:
+        # Usamos markdown para H3 para un título más pequeño que st.title()
+        st.markdown("### Context Grid") 
+    
+    st.divider() # Añade un separador visual
+
+    st.header("Acerca de")
+    st.info(
+        "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
+        "cuya funcionalidad actual permite visualizar el 'Reticulado' o 'Lattice' "
+        "de la Tabla Virtual para Cálculos Visuales DAX."
+    )
+
+    st.subheader("¿Quieres aprender Lenguaje DAX?")
+    texto_curso_intro_nuevo = "El Curso "
+    nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
+    texto_curso_descripcion_nuevo = (
+        " de Power Elite Studio es el número uno en español para dominar el Lenguaje DAX de básico a experto; y estar "
+        "en constante actualización."
+    )
+    curso_dax_texto_completo_html = texto_curso_intro_nuevo + nombre_curso_html_link + texto_curso_descripcion_nuevo
+    st.markdown( # Quitamos st.sidebar de aquí ya que estamos dentro de "with st.sidebar:"
+        f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
+        unsafe_allow_html=True
+    )
+
+    st.subheader("Un Proyecto de")
+    logo_pes_sidebar_url = "https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png"
+    link_pes_website = "https://powerelite.studio/"
+    logo_sidebar_width = 120 
+    html_logo_pes_sidebar = f"""
+    <p style="text-align:center;">
+      <a href="{link_pes_website}" target="_blank" rel="noopener noreferrer">
+        <img src="{logo_pes_sidebar_url}" alt="Power Elite Studio Logo" width="{logo_sidebar_width}">
+      </a>
+    </p>
+    """
+    st.markdown(html_logo_pes_sidebar, unsafe_allow_html=True) # Quitamos st.sidebar
+
+
+    st.subheader("Autor")
+    st.markdown( # Quitamos st.sidebar
+        "Ing. Miguel Caballero, MVP Microsoft [www.powerelite.studio](https://www.powerelite.studio)"
+    )
+# --- Fin de la Barra Lateral (Sidebar) ---
+
+
+# --- Panel Principal ---
+# MODIFICACIÓN: Se elimina el logo y título del panel principal, ya que se movieron a la sidebar
+# st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=90)
+# st.title("Context Grid")
+
+# Título principal de la funcionalidad (más pequeño que el título de la app en sidebar)
+st.header("Visualizador del Reticulado DAX") # Usamos header o subheader para el título funcional
 
 st.markdown("""
 Esta herramienta te ayuda a visualizar la estructura jerárquica (el "reticulado") 
 definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
 """)
-
-# --- Barra Lateral (Sidebar) ---
-st.sidebar.header("Acerca de")
-# MODIFICACIÓN: Texto actualizado para "Acerca de"
-st.sidebar.info(
-    "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
-    "cuya funcionalidad actual permite visualizar el 'Reticulado' o 'Lattice' "
-    "de la Tabla Virtual para Cálculos Visuales DAX."
-)
-
-st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
-# MODIFICACIÓN: Ajuste del texto y el enlace del curso DAX
-texto_curso_intro_nuevo = "El Curso "
-nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
-texto_curso_descripcion_nuevo = (
-    " de Power Elite Studio es el número uno en español para dominar el Lenguaje DAX de básico a experto; y estar "
-    "en constante actualización."
-)
-curso_dax_texto_completo_html = texto_curso_intro_nuevo + nombre_curso_html_link + texto_curso_descripcion_nuevo
-
-st.sidebar.markdown(
-    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
-    unsafe_allow_html=True
-)
-
-st.sidebar.subheader("Un Proyecto de")
-logo_pes_sidebar_url = "https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png"
-link_pes_website = "https://powerelite.studio/"
-logo_sidebar_width = 120 
-html_logo_pes_sidebar = f"""
-<p style="text-align:center;">
-  <a href="{link_pes_website}" target="_blank" rel="noopener noreferrer">
-    <img src="{logo_pes_sidebar_url}" alt="Power Elite Studio Logo" width="{logo_sidebar_width}">
-  </a>
-</p>
-"""
-st.sidebar.markdown(html_logo_pes_sidebar, unsafe_allow_html=True)
-
-
-st.sidebar.subheader("Autor")
-# MODIFICACIÓN: Texto actualizado para "Autor"
-st.sidebar.markdown(
-    "Ing. Miguel Caballero, MVP Microsoft [www.powerelite.studio](https://www.powerelite.studio)"
-)
-# --- Fin de la Barra Lateral (Sidebar) ---
 
 
 ejemplo_dax = """AXIS rows
