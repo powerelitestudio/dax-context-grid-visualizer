@@ -166,24 +166,23 @@ def create_precise_lattice_figure(parsed_structure: dict):
     fig, ax = plt.subplots(figsize=(min(fig_width, 45), min(fig_height, 35)))
 
     pos = None
-    layout_engine_used = "Spring Layout (inicial)" 
+    # layout_engine_used = "Spring Layout (inicial)" # No es necesario mostrar esto en el título del gráfico
 
     if HAS_PYDOT_AND_GRAPHVIZ and G.number_of_nodes() > 0 :
         try:
             from networkx.drawing.nx_pydot import graphviz_layout 
             pos = graphviz_layout(G, prog='dot')
-            layout_engine_used = "Graphviz 'dot' Layout ✨"
+            # layout_engine_used = "Graphviz 'dot' Layout ✨" # No es necesario para el título
         except Exception as e_layout:
-            # Este error se muestra en la UI si graphviz_layout falla
             st.error(f"❌ Falló el intento de usar `graphviz_layout(G, prog='dot')`: {type(e_layout).__name__}: {e_layout}")
             st.warning("Se usará 'spring_layout' como alternativa debido al error anterior.")
             pos = None 
-            layout_engine_used = "Spring Layout (excepción en dot)"
+            # layout_engine_used = "Spring Layout (excepción en dot)" # No es necesario para el título
     
     if pos is None and G.number_of_nodes() > 0: 
         pos = nx.spring_layout(G, k=2.5/max(1, (G.number_of_nodes()**0.5)), iterations=100, seed=42)
-        if not layout_engine_used.endswith("(excepción en dot)"): 
-             layout_engine_used = "Spring Layout (fallback general)"
+        # if not layout_engine_used.endswith("(excepción en dot)"): 
+        #      layout_engine_used = "Spring Layout (fallback general)" # No es necesario para el título
     
     if G.number_of_nodes() > 0 and pos is not None:
         nx.draw_networkx_nodes(G, pos, ax=ax, node_shape='s', node_size=base_node_size, 
@@ -192,11 +191,13 @@ def create_precise_lattice_figure(parsed_structure: dict):
         nx.draw_networkx_labels(G, pos, ax=ax, labels=labels, font_size=font_node_size, font_weight='normal')
         nx.draw_networkx_edges(G, pos, ax=ax, width=1.0, edge_color='dimgray', 
                                arrows=True, arrowstyle='-|>', arrowsize=10) 
-        ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14)
+        
+        # MODIFICACIÓN: Se elimina el título del gráfico (ax.set_title)
+        # ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14) 
     else:
-        if num_nodes > 1 and pos is None: # Si había nodos pero no se pudo calcular pos
+        if num_nodes > 1 and pos is None:
              st.error("No se pudo calcular la posición de los nodos para el gráfico.")
-        return None # Devuelve None si no se pudo generar el gráfico
+        return None 
     
     fig.tight_layout() 
     return fig
@@ -265,14 +266,12 @@ if st.button("🔍 Generar Gráfico del Reticulado"):
              
         with st.spinner("Analizando DAX y generando gráfico... ⏳"):
             parsed_struct = parse_visual_shape(dax_clause_input)
-            fig = None # Inicializar fig
+            fig = None 
             
-            # Intentar generar la figura siempre que haya algo parseado
-            if parsed_struct.get("ROWS") or parsed_struct.get("COLUMNS") or (not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS") and dax_clause_input.strip()): # Aunque no haya rows/cols, puede haber un nodo raíz
+            if parsed_struct.get("ROWS") or parsed_struct.get("COLUMNS") or (not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS") and dax_clause_input.strip()):
                  fig = create_precise_lattice_figure(parsed_struct)
 
-            # --- MODIFICACIÓN: USO DE PESTAÑAS (TABS) ---
-            if parsed_struct: # Solo mostrar pestañas si hay algo parseado
+            if parsed_struct: 
                 tab_graph_title = "📊 Gráfico del Reticulado"
                 tab_data_title = "⚙️ Estructura Parseada"
                 
@@ -280,8 +279,8 @@ if st.button("🔍 Generar Gráfico del Reticulado"):
 
                 with tab1:
                     if not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS"):
-                        st.info("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal del reticulado. El nodo raíz se muestra si está definido.")
-                        if fig: # Para el caso de solo nodo raíz si se implementara así
+                        st.info("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal del reticulado.")
+                        if fig: 
                              st.pyplot(fig)
                     elif not parsed_struct.get("ROWS") or not parsed_struct.get("COLUMNS"):
                          st.info("Se requieren campos tanto en ROWS como en COLUMNS para el reticulado completo de intersecciones. Se mostrará la jerarquía de un solo eje si está definida.")
@@ -289,20 +288,19 @@ if st.button("🔍 Generar Gráfico del Reticulado"):
                              st.pyplot(fig)
                          else:
                              st.info("No se pudo generar el gráfico parcial.")
-                    else: # Caso normal con ROWS y COLUMNS
+                    else: 
                         if fig:
                             st.pyplot(fig)
                         else:
-                             # Este error ya se mostraría dentro de create_precise_lattice_figure si pos es None
                             st.error("No se pudo generar la figura del gráfico.")
                 
                 with tab2:
                     st.subheader("Datos de la Estructura Parseada")
                     st.json(parsed_struct)
             
-            elif not dax_clause_input.strip(): # Si no hubo entrada, pero se presionó el botón
-                 pass # El warning de abajo ya lo maneja
-            else: # Si parsed_struct está vacío por alguna razón no cubierta
+            elif not dax_clause_input.strip():
+                 pass 
+            else: 
                 st.error("No se pudo parsear la entrada para generar una estructura.")
 
     else:
