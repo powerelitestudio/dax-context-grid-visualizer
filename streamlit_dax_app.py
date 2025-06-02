@@ -205,11 +205,12 @@ st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide")
 
 st.image("https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png", width=100)
 
-st.title("Visualizador del Reticulado en DAX")
+st.title("Visualizador del Reticulado en DAX") # Título ya modificado en paso anterior
 
+# MODIFICACIÓN DEL TEXTO INTRODUCTORIO:
 st.markdown("""
 Esta herramienta te ayuda a visualizar la estructura jerárquica (el "reticulado") 
-definida por la Tabla Virtual en conjunto con la cláusula `WITH VISUAL SHAPE` de DAX.
+definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
 """)
 
 # --- Barra Lateral (Sidebar) ---
@@ -222,17 +223,16 @@ st.sidebar.info(
 )
 
 st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
-# MODIFICACIÓN: Usar HTML para el enlace dentro del div estilizado
-texto_curso_parte_1 = (
-    "El curso 'Magíster en Lenguaje DAX' de Power Elite Studio es curso/capacitación "
+# MODIFICACIÓN: 'Magíster en Lenguaje DAX' ahora es el enlace en negrita y subrayado
+curso_nombre_linkeado = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
+texto_descriptivo_curso = (
+    f"El curso {curso_nombre_linkeado} de Power Elite Studio es curso/capacitación "
     "número uno en español para dominar el Lenguaje DAX de básico a experto y estar "
-    "en constante actualización: "
+    "en constante actualización."
 )
-enlace_html_curso = '<a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">clic aquí para conocer más</a>.'
-curso_dax_texto_completo = texto_curso_parte_1 + enlace_html_curso
 
 st.sidebar.markdown(
-    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo}</div>',
+    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{texto_descriptivo_curso}</div>',
     unsafe_allow_html=True
 )
 
