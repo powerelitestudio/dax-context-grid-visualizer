@@ -203,29 +203,22 @@ def create_precise_lattice_figure(parsed_structure: dict):
 # --- Interfaz de Usuario con Streamlit ---
 st.set_page_config(page_title="Context Grid Visualizer", layout="wide")
 
-st.markdown("""
-    <style>
-        /* Ajuste para el título H3 en la sidebar al lado del logo */
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div[data-testid="stMarkdownContainer"] h3 {
-            padding-top: 0.6em !important; 
-            margin-top: 0em !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-
 # --- Barra Lateral (Sidebar) ---
 with st.sidebar: 
-    s_col_logo, s_col_titulo_app = st.columns([1, 3]) 
-    with s_col_logo:
-        st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=60) 
-    with s_col_titulo_app:
-        st.markdown("### Context Grid") 
+    # MODIFICACIÓN: Logo y Título de la App "Context Grid" al inicio de la Sidebar
+    # Usamos HTML/CSS dentro de st.markdown para mejor control de alineación y espaciado.
+    logo_app_url = "https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png"
+    app_title_sidebar_html = f"""
+    <div style="display: flex; align-items: center; margin-top: -25px; margin-bottom: -10px;">
+        <img src="{logo_app_url}" width="50" style="margin-right: 10px; vertical-align: middle;">
+        <h3 style="margin: 0; font-size: 1.15em; font-weight: bold; vertical-align: middle; line-height: 1;">Context Grid</h3>
+    </div>
+    """
+    st.markdown(app_title_sidebar_html, unsafe_allow_html=True)
     
     st.divider() 
 
     st.header("Acerca de")
-    # MODIFICACIÓN: Texto actualizado para "Acerca de"
     st.info(
         "Context Grid es una app de Power Elite Studio, cuya funcionalidad actual "
         "permite visualizar el 'Reticulado' o 'Lattice' de la Tabla Virtual "
@@ -233,14 +226,13 @@ with st.sidebar:
     )
 
     st.subheader("¿Quieres aprender Lenguaje DAX?")
-    # MODIFICACIÓN: Ajuste del texto del curso DAX
     texto_curso_intro_nuevo = "El Curso "
     nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
-    texto_curso_descripcion_nuevo = ( # Texto acortado
+    texto_curso_descripcion_nuevo = (
         " de Power Elite Studio es el número uno en español para dominar el Lenguaje DAX de básico a experto."
     )
     curso_dax_texto_completo_html = texto_curso_intro_nuevo + nombre_curso_html_link + texto_curso_descripcion_nuevo
-    st.markdown( 
+    st.markdown(
         f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
         unsafe_allow_html=True
     )
@@ -260,7 +252,6 @@ with st.sidebar:
 
 
     st.subheader("Autor")
-    # MODIFICACIÓN: Texto actualizado para "Autor"
     st.markdown( 
         "Ing. Miguel Caballero, MVP Microsoft [www.powerelite.studio](https://www.powerelite.studio)"
     )
@@ -268,6 +259,10 @@ with st.sidebar:
 
 
 # --- Panel Principal ---
+# MODIFICACIÓN: Se elimina el logo y título del panel principal, ya que se movieron a la sidebar
+# st.image(...) 
+# st.title(...)
+
 st.header("Visualizador del Reticulado DAX") 
 
 st.markdown("""
