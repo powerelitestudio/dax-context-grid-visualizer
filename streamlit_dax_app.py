@@ -201,33 +201,24 @@ def create_precise_lattice_figure(parsed_structure: dict):
     return fig
 
 # --- Interfaz de Usuario con Streamlit ---
-st.set_page_config(page_title="Context Grid Visualizer", layout="wide") # Título de la pestaña del navegador
+st.set_page_config(page_title="Context Grid Visualizer", layout="wide")
 
-# Columnas para el logo y el nuevo título
-col_logo, col_titulo = st.columns([1, 6]) # Ajusta la proporción si es necesario (ej. [1,5] o [1.5,5])
+col_logo, col_titulo = st.columns([1, 5]) 
 
 with col_logo:
-    st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=70) # Logo de Context Grid
+    # MODIFICACIÓN: Aumentar tamaño del logo de Context Grid
+    st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=90) # Ajusta el 'width' si es necesario
 
 with col_titulo:
-    # CSS para intentar ajustar la alineación vertical del título con el logo.
-    # Reduce el margen y padding superior del H1 generado por st.title().
     st.markdown("""
         <style>
-            /* Apunta al contenedor del título generado por st.title() */
-            div[data-testid="stAppViewContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] > div:first-child,
-            div[data-testid="stAppViewContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] {
-                padding-top: 0rem !important;
-                margin-top: 0.2rem !important; /* Ligeramente para alinear mejor con logos de cierta altura */
-            }
-            div[data-testid="stAppViewContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] h1 {
-                 margin-top: 0rem !important;
-                 padding-top: 0rem !important;
+            div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] h1 {
+                padding-top: 0.5rem; 
+                margin-top: 0.2rem; 
             }
         </style>
     """, unsafe_allow_html=True)
-    # NUEVO TÍTULO DE LA APLICACIÓN:
-    st.title("Context Grid")
+    st.title("Context Grid") # Título ya modificado
 
 
 st.markdown("""
@@ -237,6 +228,7 @@ definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
 
 # --- Barra Lateral (Sidebar) ---
 st.sidebar.header("Acerca de")
+# MODIFICACIÓN: Texto actualizado para "Acerca de"
 st.sidebar.info(
     "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
     "cuya funcionalidad actual permite visualizar el 'Reticulado' o 'Lattice' "
@@ -244,14 +236,15 @@ st.sidebar.info(
 )
 
 st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
-texto_curso_intro = "El cCrso "
+# MODIFICACIÓN: Ajuste del texto y el enlace del curso DAX
+texto_curso_intro_nuevo = "El Curso "
 nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
-texto_curso_descripcion = (
-    " de Power Elite Studio es el "
-    "número uno en español para dominar el Lenguaje DAX de básico a experto; y estar "
+texto_curso_descripcion_nuevo = (
+    " de Power Elite Studio es el número uno en español para dominar el Lenguaje DAX de básico a experto; y estar "
     "en constante actualización."
 )
-curso_dax_texto_completo_html = texto_curso_intro + nombre_curso_html_link + texto_curso_descripcion
+curso_dax_texto_completo_html = texto_curso_intro_nuevo + nombre_curso_html_link + texto_curso_descripcion_nuevo
+
 st.sidebar.markdown(
     f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
     unsafe_allow_html=True
@@ -270,7 +263,9 @@ html_logo_pes_sidebar = f"""
 """
 st.sidebar.markdown(html_logo_pes_sidebar, unsafe_allow_html=True)
 
+
 st.sidebar.subheader("Autor")
+# MODIFICACIÓN: Texto actualizado para "Autor"
 st.sidebar.markdown(
     "Ing. Miguel Caballero, MVP Microsoft [www.powerelite.studio](https://www.powerelite.studio)"
 )
@@ -278,7 +273,7 @@ st.sidebar.markdown(
 
 
 ejemplo_dax = """AXIS rows
-    GROUP [Año]
+    GROUP [Anio]
     GROUP [Trimestre]
     GROUP [Mes]
 AXIS columns
