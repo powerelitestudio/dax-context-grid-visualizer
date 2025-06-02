@@ -204,18 +204,17 @@ def create_precise_lattice_figure(parsed_structure: dict):
 st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide")
 
 # MODIFICACIÓN: Usar columnas para el logo y el título
-col_logo, col_titulo = st.columns([1, 5]) # Proporción de ancho (logo pequeño, título más grande)
+col_logo, col_titulo = st.columns([1, 5]) 
 
 with col_logo:
-    st.image("https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png", width=70) # Ajusta el 'width' para alinear altura
+    # MODIFICACIÓN: Cambiar URL del logo principal al de Context Grid
+    st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=70) 
 
 with col_titulo:
-    # Pequeño ajuste de CSS para intentar alinear mejor el título verticalmente con el logo
-    # Esto puede necesitar ajustes o ser eliminado si no produce el efecto deseado.
     st.markdown("""
         <style>
             div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] h1 {
-                padding-top: 0.5rem; /* Ajusta este valor para subir o bajar el título */
+                padding-top: 0.5rem; 
                 margin-top: 0rem;
             }
         </style>
@@ -246,11 +245,26 @@ texto_curso_descripcion = (
     "en constante actualización."
 )
 curso_dax_texto_completo_html = texto_curso_intro + nombre_curso_html_link + texto_curso_descripcion
-
 st.sidebar.markdown(
     f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
     unsafe_allow_html=True
 )
+
+# MODIFICACIÓN: Nueva sección "Un Proyecto de" en la Sidebar
+st.sidebar.subheader("Un Proyecto de")
+logo_pes_sidebar_url = "https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png"
+link_pes_website = "https://powerelite.studio/"
+logo_sidebar_width = 120 # Ancho del logo de PES en la sidebar, puedes ajustarlo
+
+html_logo_pes_sidebar = f"""
+<p style="text-align:center;">
+  <a href="{link_pes_website}" target="_blank" rel="noopener noreferrer">
+    <img src="{logo_pes_sidebar_url}" alt="Power Elite Studio Logo" width="{logo_sidebar_width}">
+  </a>
+</p>
+"""
+st.sidebar.markdown(html_logo_pes_sidebar, unsafe_allow_html=True)
+
 
 st.sidebar.subheader("Autor")
 st.sidebar.markdown(
