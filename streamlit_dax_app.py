@@ -166,23 +166,23 @@ def create_precise_lattice_figure(parsed_structure: dict):
     fig, ax = plt.subplots(figsize=(min(fig_width, 45), min(fig_height, 35)))
 
     pos = None
-    # layout_engine_used = "Spring Layout (inicial)" # No es necesario mostrar esto en el título del gráfico
+    layout_engine_used = "Spring Layout (inicial)" 
 
     if HAS_PYDOT_AND_GRAPHVIZ and G.number_of_nodes() > 0 :
         try:
             from networkx.drawing.nx_pydot import graphviz_layout 
             pos = graphviz_layout(G, prog='dot')
-            # layout_engine_used = "Graphviz 'dot' Layout ✨" # No es necesario para el título
+            layout_engine_used = "Graphviz 'dot' Layout ✨"
         except Exception as e_layout:
             st.error(f"❌ Falló el intento de usar `graphviz_layout(G, prog='dot')`: {type(e_layout).__name__}: {e_layout}")
             st.warning("Se usará 'spring_layout' como alternativa debido al error anterior.")
             pos = None 
-            # layout_engine_used = "Spring Layout (excepción en dot)" # No es necesario para el título
+            layout_engine_used = "Spring Layout (excepción en dot)"
     
     if pos is None and G.number_of_nodes() > 0: 
         pos = nx.spring_layout(G, k=2.5/max(1, (G.number_of_nodes()**0.5)), iterations=100, seed=42)
-        # if not layout_engine_used.endswith("(excepción en dot)"): 
-        #      layout_engine_used = "Spring Layout (fallback general)" # No es necesario para el título
+        if not layout_engine_used.endswith("(excepción en dot)"): 
+             layout_engine_used = "Spring Layout (fallback general)"
     
     if G.number_of_nodes() > 0 and pos is not None:
         nx.draw_networkx_nodes(G, pos, ax=ax, node_shape='s', node_size=base_node_size, 
@@ -191,9 +191,7 @@ def create_precise_lattice_figure(parsed_structure: dict):
         nx.draw_networkx_labels(G, pos, ax=ax, labels=labels, font_size=font_node_size, font_weight='normal')
         nx.draw_networkx_edges(G, pos, ax=ax, width=1.0, edge_color='dimgray', 
                                arrows=True, arrowstyle='-|>', arrowsize=10) 
-        
-        # MODIFICACIÓN: Se elimina el título del gráfico (ax.set_title)
-        # ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14) 
+        # ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14) # Título del gráfico eliminado
     else:
         if num_nodes > 1 and pos is None:
              st.error("No se pudo calcular la posición de los nodos para el gráfico.")
@@ -224,15 +222,19 @@ st.sidebar.info(
 )
 
 st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
-texto_curso_parte_1 = (
-    "El curso 'Magíster en Lenguaje DAX' de Power Elite Studio es curso/capacitación "
+# MODIFICACIÓN: 'Magíster en Lenguaje DAX' ahora es el enlace, en negrita y subrayado.
+# Se eliminó el texto "clic aquí para conocer más".
+texto_curso_intro = "El curso "
+nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
+texto_curso_descripcion = (
+    " de Power Elite Studio es curso/capacitación "
     "número uno en español para dominar el Lenguaje DAX de básico a experto y estar "
-    "en constante actualización: "
+    "en constante actualización."
 )
-enlace_html_curso = '<a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">clic aquí para conocer más</a>.'
-curso_dax_texto_completo = texto_curso_parte_1 + enlace_html_curso
+curso_dax_texto_completo_html = texto_curso_intro + nombre_curso_html_link + texto_curso_descripcion
+
 st.sidebar.markdown(
-    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo}</div>',
+    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
     unsafe_allow_html=True
 )
 
