@@ -203,47 +203,26 @@ def create_precise_lattice_figure(parsed_structure: dict):
 # --- Interfaz de Usuario con Streamlit ---
 st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide")
 
-# MODIFICACIÓN: Inyección de CSS para ajustar espaciado
-css_to_inject = """
-<style>
-    /* Reducir espacio encima del logo (primer elemento stImage en el main container) */
-    .main .block-container > div:nth-child(1) > div[data-testid="stImage"] {
-        margin-top: -30px !important; /* Ajusta este valor según sea necesario */
-    }
-    /* Reducir espacio debajo del logo */
-    div[data-testid="stImage"] {
-        margin-bottom: -20px !important; /* Ajusta este valor */
-    }
+# MODIFICACIÓN: Usar columnas para el logo y el título
+col_logo, col_titulo = st.columns([1, 5]) # Proporción de ancho (logo pequeño, título más grande)
 
-    /* Reducir espacio encima del primer header en la sidebar */
-    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:nth-child(1) > div:nth-child(1) {
-        margin-top: -25px !important; /* Ajusta este valor */
-    }
-    
-    /* Reducir padding para todas las cajas st.info en la sidebar */
-    section[data-testid="stSidebar"] div[data-testid="stInfo"],
-    section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] div[style*="background-color"] { /* Para el div con fondo amarillo */
-        padding: 0.6rem 0.75rem !important; /* Ajusta el padding */
-    }
+with col_logo:
+    st.image("https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png", width=70) # Ajusta el 'width' para alinear altura
 
-    /* Reducir margen inferior de los headers H1, H2, H3 en la sidebar */
-    section[data-testid="stSidebar"] h1, 
-    section[data-testid="stSidebar"] h2, 
-    section[data-testid="stSidebar"] h3 {
-        margin-bottom: 0.15rem !important; /* Ajusta este valor */
-        margin-top: 0.75rem !important; /* Ajusta margen superior para headers después del primero */
-    }
-    /* Específico para el primer header si es H1 y no queremos tanto margen superior por el ajuste de arriba */
-    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:nth-child(1) > div:nth-child(1) h1 {
-         margin-top: 0rem !important;
-    }
+with col_titulo:
+    # Pequeño ajuste de CSS para intentar alinear mejor el título verticalmente con el logo
+    # Esto puede necesitar ajustes o ser eliminado si no produce el efecto deseado.
+    st.markdown("""
+        <style>
+            div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] h1 {
+                padding-top: 0.5rem; /* Ajusta este valor para subir o bajar el título */
+                margin-top: 0rem;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+    st.title("Visualizador del Reticulado en DAX")
 
-</style>
-"""
-st.markdown(css_to_inject, unsafe_allow_html=True)
 
-st.image("https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png", width=100)
-st.title("Visualizador del Reticulado en DAX")
 st.markdown("""
 Esta herramienta te ayuda a visualizar la estructura jerárquica (el "reticulado") 
 definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
@@ -267,6 +246,7 @@ texto_curso_descripcion = (
     "en constante actualización."
 )
 curso_dax_texto_completo_html = texto_curso_intro + nombre_curso_html_link + texto_curso_descripcion
+
 st.sidebar.markdown(
     f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
     unsafe_allow_html=True
@@ -277,6 +257,7 @@ st.sidebar.markdown(
     "Microsoft MVP Miguel Caballero, [www.powerelite.studio](https://www.powerelite.studio)"
 )
 # --- Fin de la Barra Lateral (Sidebar) ---
+
 
 ejemplo_dax = """AXIS rows
     GROUP [Anio]
