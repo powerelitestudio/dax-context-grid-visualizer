@@ -201,25 +201,33 @@ def create_precise_lattice_figure(parsed_structure: dict):
     return fig
 
 # --- Interfaz de Usuario con Streamlit ---
-st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide")
+st.set_page_config(page_title="Context Grid Visualizer", layout="wide") # Título de la pestaña del navegador
 
-# MODIFICACIÓN: Usar columnas para el logo y el título
-col_logo, col_titulo = st.columns([1, 5]) 
+# Columnas para el logo y el nuevo título
+col_logo, col_titulo = st.columns([1, 6]) # Ajusta la proporción si es necesario (ej. [1,5] o [1.5,5])
 
 with col_logo:
-    # MODIFICACIÓN: Cambiar URL del logo principal al de Context Grid
-    st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=70) 
+    st.image("https://powerelite.studio/wp-content/uploads/2025/06/Context-Grid-v1.png", width=70) # Logo de Context Grid
 
 with col_titulo:
+    # CSS para intentar ajustar la alineación vertical del título con el logo.
+    # Reduce el margen y padding superior del H1 generado por st.title().
     st.markdown("""
         <style>
-            div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] h1 {
-                padding-top: 0.5rem; 
-                margin-top: 0rem;
+            /* Apunta al contenedor del título generado por st.title() */
+            div[data-testid="stAppViewContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] > div:first-child,
+            div[data-testid="stAppViewContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] {
+                padding-top: 0rem !important;
+                margin-top: 0.2rem !important; /* Ligeramente para alinear mejor con logos de cierta altura */
+            }
+            div[data-testid="stAppViewContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="stHeading"] h1 {
+                 margin-top: 0rem !important;
+                 padding-top: 0rem !important;
             }
         </style>
     """, unsafe_allow_html=True)
-    st.title("Visualizador del Reticulado en DAX")
+    # NUEVO TÍTULO DE LA APLICACIÓN:
+    st.title("Context Grid")
 
 
 st.markdown("""
@@ -231,16 +239,16 @@ definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
 st.sidebar.header("Acerca de")
 st.sidebar.info(
     "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
-    "cuya funcionalidad actual es poder visualizar el 'Reticulado' o 'Lattice' "
+    "cuya funcionalidad actual permite visualizar el 'Reticulado' o 'Lattice' "
     "de la Tabla Virtual para Cálculos Visuales DAX."
 )
 
 st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
-texto_curso_intro = "El Curso "
+texto_curso_intro = "El cCrso "
 nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
 texto_curso_descripcion = (
     " de Power Elite Studio es el "
-    "número uno en español para dominar el Lenguaje DAX de básico a experto, y estar "
+    "número uno en español para dominar el Lenguaje DAX de básico a experto; y estar "
     "en constante actualización."
 )
 curso_dax_texto_completo_html = texto_curso_intro + nombre_curso_html_link + texto_curso_descripcion
@@ -249,12 +257,10 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-# MODIFICACIÓN: Nueva sección "Un Proyecto de" en la Sidebar
 st.sidebar.subheader("Un Proyecto de")
 logo_pes_sidebar_url = "https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png"
 link_pes_website = "https://powerelite.studio/"
-logo_sidebar_width = 120 # Ancho del logo de PES en la sidebar, puedes ajustarlo
-
+logo_sidebar_width = 120 
 html_logo_pes_sidebar = f"""
 <p style="text-align:center;">
   <a href="{link_pes_website}" target="_blank" rel="noopener noreferrer">
@@ -263,7 +269,6 @@ html_logo_pes_sidebar = f"""
 </p>
 """
 st.sidebar.markdown(html_logo_pes_sidebar, unsafe_allow_html=True)
-
 
 st.sidebar.subheader("Autor")
 st.sidebar.markdown(
