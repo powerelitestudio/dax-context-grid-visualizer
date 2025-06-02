@@ -166,23 +166,23 @@ def create_precise_lattice_figure(parsed_structure: dict):
     fig, ax = plt.subplots(figsize=(min(fig_width, 45), min(fig_height, 35)))
 
     pos = None
-    layout_engine_used = "Spring Layout (inicial)" 
+    # layout_engine_used = "Spring Layout (inicial)" 
 
     if HAS_PYDOT_AND_GRAPHVIZ and G.number_of_nodes() > 0 :
         try:
             from networkx.drawing.nx_pydot import graphviz_layout 
             pos = graphviz_layout(G, prog='dot')
-            layout_engine_used = "Graphviz 'dot' Layout ✨"
+            # layout_engine_used = "Graphviz 'dot' Layout ✨" 
         except Exception as e_layout:
             st.error(f"❌ Falló el intento de usar `graphviz_layout(G, prog='dot')`: {type(e_layout).__name__}: {e_layout}")
             st.warning("Se usará 'spring_layout' como alternativa debido al error anterior.")
             pos = None 
-            layout_engine_used = "Spring Layout (excepción en dot)"
+            # layout_engine_used = "Spring Layout (excepción en dot)" 
     
     if pos is None and G.number_of_nodes() > 0: 
         pos = nx.spring_layout(G, k=2.5/max(1, (G.number_of_nodes()**0.5)), iterations=100, seed=42)
-        if not layout_engine_used.endswith("(excepción en dot)"): 
-             layout_engine_used = "Spring Layout (fallback general)"
+        # if not layout_engine_used.endswith("(excepción en dot)"): 
+        #      layout_engine_used = "Spring Layout (fallback general)" 
     
     if G.number_of_nodes() > 0 and pos is not None:
         nx.draw_networkx_nodes(G, pos, ax=ax, node_shape='s', node_size=base_node_size, 
@@ -191,7 +191,7 @@ def create_precise_lattice_figure(parsed_structure: dict):
         nx.draw_networkx_labels(G, pos, ax=ax, labels=labels, font_size=font_node_size, font_weight='normal')
         nx.draw_networkx_edges(G, pos, ax=ax, width=1.0, edge_color='dimgray', 
                                arrows=True, arrowstyle='-|>', arrowsize=10) 
-        # ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14) # Título del gráfico eliminado
+        # ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14) 
     else:
         if num_nodes > 1 and pos is None:
              st.error("No se pudo calcular la posición de los nodos para el gráfico.")
@@ -203,10 +203,47 @@ def create_precise_lattice_figure(parsed_structure: dict):
 # --- Interfaz de Usuario con Streamlit ---
 st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide")
 
+# MODIFICACIÓN: Inyección de CSS para ajustar espaciado
+css_to_inject = """
+<style>
+    /* Reducir espacio encima del logo (primer elemento stImage en el main container) */
+    .main .block-container > div:nth-child(1) > div[data-testid="stImage"] {
+        margin-top: -30px !important; /* Ajusta este valor según sea necesario */
+    }
+    /* Reducir espacio debajo del logo */
+    div[data-testid="stImage"] {
+        margin-bottom: -20px !important; /* Ajusta este valor */
+    }
+
+    /* Reducir espacio encima del primer header en la sidebar */
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:nth-child(1) > div:nth-child(1) {
+        margin-top: -25px !important; /* Ajusta este valor */
+    }
+    
+    /* Reducir padding para todas las cajas st.info en la sidebar */
+    section[data-testid="stSidebar"] div[data-testid="stInfo"],
+    section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] div[style*="background-color"] { /* Para el div con fondo amarillo */
+        padding: 0.6rem 0.75rem !important; /* Ajusta el padding */
+    }
+
+    /* Reducir margen inferior de los headers H1, H2, H3 en la sidebar */
+    section[data-testid="stSidebar"] h1, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h3 {
+        margin-bottom: 0.15rem !important; /* Ajusta este valor */
+        margin-top: 0.75rem !important; /* Ajusta margen superior para headers después del primero */
+    }
+    /* Específico para el primer header si es H1 y no queremos tanto margen superior por el ajuste de arriba */
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:nth-child(1) > div:nth-child(1) h1 {
+         margin-top: 0rem !important;
+    }
+
+</style>
+"""
+st.markdown(css_to_inject, unsafe_allow_html=True)
+
 st.image("https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png", width=100)
-
 st.title("Visualizador del Reticulado en DAX")
-
 st.markdown("""
 Esta herramienta te ayuda a visualizar la estructura jerárquica (el "reticulado") 
 definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
@@ -215,95 +252,3 @@ definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
 # --- Barra Lateral (Sidebar) ---
 st.sidebar.header("Acerca de")
 st.sidebar.info(
-    "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
-    "cuya funcionalidad actual es poder visualizar el 'Retiulado' o 'Lattice' "
-    "de la Tabla Virtual para Cálculos Visuales DAX, esto para ayudar a entender "
-    "la estructura lógica sobre la que operan dichos cálculos."
-)
-
-st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
-# MODIFICACIÓN: 'Magíster en Lenguaje DAX' ahora es el enlace, en negrita y subrayado.
-# Se eliminó el texto "clic aquí para conocer más".
-texto_curso_intro = "El curso "
-nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
-texto_curso_descripcion = (
-    " de Power Elite Studio es curso/capacitación "
-    "número uno en español para dominar el Lenguaje DAX de básico a experto y estar "
-    "en constante actualización."
-)
-curso_dax_texto_completo_html = texto_curso_intro + nombre_curso_html_link + texto_curso_descripcion
-
-st.sidebar.markdown(
-    f'<div style="background-color: #FFFACD; padding: 10px; border-radius: 5px;">{curso_dax_texto_completo_html}</div>',
-    unsafe_allow_html=True
-)
-
-st.sidebar.subheader("Autor")
-st.sidebar.markdown(
-    "Microsoft MVP Miguel Caballero, [www.powerelite.studio](https://www.powerelite.studio)"
-)
-# --- Fin de la Barra Lateral (Sidebar) ---
-
-
-ejemplo_dax = """AXIS rows
-    GROUP [Anio]
-    GROUP [Trimestre]
-    GROUP [Mes]
-AXIS columns
-    GROUP [Categoria]
-    GROUP [Subcategoria]
-    GROUP [Producto]
-"""
-
-dax_clause_input = st.text_area(
-    "Introduce tu cláusula `WITH VISUAL SHAPE` (o el contenido desde `AXIS ROWS`):",
-    height=250,
-    placeholder=ejemplo_dax
-)
-
-if st.button("🔍 Generar Gráfico del Reticulado"):
-    if dax_clause_input.strip():
-        if not HAS_PYDOT_AND_GRAPHVIZ: 
-             st.warning("⚠️ Layout jerárquico (Graphviz) no disponible o no detectado. Se usará un layout alternativo. Asegúrate de que Graphviz esté instalado y en el PATH del sistema donde se ejecuta esta app si es localmente, o que esté incluido en `packages.txt` si se despliega en Streamlit Cloud.")
-             
-        with st.spinner("Analizando DAX y generando gráfico... ⏳"):
-            parsed_struct = parse_visual_shape(dax_clause_input)
-            fig = None 
-            
-            if parsed_struct.get("ROWS") or parsed_struct.get("COLUMNS") or (not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS") and dax_clause_input.strip()):
-                 fig = create_precise_lattice_figure(parsed_struct)
-
-            if parsed_struct: 
-                tab_graph_title = "📊 Gráfico del Reticulado"
-                tab_data_title = "⚙️ Estructura Parseada"
-                
-                tab1, tab2 = st.tabs([tab_graph_title, tab_data_title])
-
-                with tab1:
-                    if not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS"):
-                        st.info("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal del reticulado.")
-                        if fig: 
-                             st.pyplot(fig)
-                    elif not parsed_struct.get("ROWS") or not parsed_struct.get("COLUMNS"):
-                         st.info("Se requieren campos tanto en ROWS como en COLUMNS para el reticulado completo de intersecciones. Se mostrará la jerarquía de un solo eje si está definida.")
-                         if fig:
-                             st.pyplot(fig)
-                         else:
-                             st.info("No se pudo generar el gráfico parcial.")
-                    else: 
-                        if fig:
-                            st.pyplot(fig)
-                        else:
-                            st.error("No se pudo generar la figura del gráfico.")
-                
-                with tab2:
-                    st.subheader("Datos de la Estructura Parseada")
-                    st.json(parsed_struct)
-            
-            elif not dax_clause_input.strip():
-                 pass 
-            else: 
-                st.error("No se pudo parsear la entrada para generar una estructura.")
-
-    else:
-        st.warning("Por favor, introduce una cláusula DAX para visualizar.")
