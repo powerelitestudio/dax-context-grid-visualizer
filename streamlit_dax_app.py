@@ -8,26 +8,19 @@ import matplotlib # Necesario para configurar el backend
 try:
     matplotlib.use('Agg')
 except Exception as e:
-    # Este print irá a los logs del servidor de Streamlit si hay un problema aquí.
-    # No es visible para el usuario final en la UI.
     print(f"Advertencia al configurar matplotlib.use('Agg'): {e}")
 
 # Variable global para el estado de Graphviz/Pydot
 HAS_PYDOT_AND_GRAPHVIZ = False
 try:
-    import pydotplus # Necesario para que NetworkX interactúe con Graphviz via nx_pydot
-    import pydot # NetworkX puede intentar importar 'pydot' directamente
-    
-    # Verifica si pydotplus puede encontrar los ejecutables de Graphviz
-    # y si la función de layout de NetworkX se puede importar.
+    import pydotplus 
+    import pydot 
     if pydotplus.find_graphviz() and pydotplus.find_graphviz().get('dot'):
         from networkx.drawing.nx_pydot import graphviz_layout
         HAS_PYDOT_AND_GRAPHVIZ = True
 except ImportError:
-    # pydotplus, pydot o nx_pydot.graphviz_layout no se pudieron importar
     HAS_PYDOT_AND_GRAPHVIZ = False
 except Exception:
-    # Otra excepción durante el chequeo (ej. find_graphviz falla)
     HAS_PYDOT_AND_GRAPHVIZ = False
 
 
@@ -163,7 +156,6 @@ def create_precise_lattice_figure(parsed_structure: dict):
 
     num_nodes = G.number_of_nodes()
     if num_nodes <= 1: 
-        # No mostrar error en UI aquí, se maneja en la UI principal si fig es None
         return None 
 
     base_node_size = 2000 
@@ -178,11 +170,10 @@ def create_precise_lattice_figure(parsed_structure: dict):
 
     if HAS_PYDOT_AND_GRAPHVIZ and G.number_of_nodes() > 0 :
         try:
-            from networkx.drawing.nx_pydot import graphviz_layout # Asegurar importación local
+            from networkx.drawing.nx_pydot import graphviz_layout 
             pos = graphviz_layout(G, prog='dot')
             layout_engine_used = "Graphviz 'dot' Layout ✨"
         except Exception as e_layout:
-            # Este error SÍ se muestra en la UI principal si ocurre
             st.error(f"❌ Falló el intento de usar `graphviz_layout(G, prog='dot')`: {type(e_layout).__name__}: {e_layout}")
             st.warning("Se usará 'spring_layout' como alternativa debido al error anterior.")
             pos = None 
@@ -190,7 +181,7 @@ def create_precise_lattice_figure(parsed_structure: dict):
     
     if pos is None and G.number_of_nodes() > 0: 
         pos = nx.spring_layout(G, k=2.5/max(1, (G.number_of_nodes()**0.5)), iterations=100, seed=42)
-        if not layout_engine_used.endswith("(excepción en dot)"): # Solo actualizar si no fue por error de dot
+        if not layout_engine_used.endswith("(excepción en dot)"): 
              layout_engine_used = "Spring Layout (fallback general)"
     
     if G.number_of_nodes() > 0 and pos is not None:
@@ -202,8 +193,6 @@ def create_precise_lattice_figure(parsed_structure: dict):
                                arrows=True, arrowstyle='-|>', arrowsize=10) 
         ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14)
     else:
-        # Si pos es None pero hay nodos, es un problema de layout no manejado antes.
-        # Ya retornamos None si num_nodes <= 1.
         if num_nodes > 1 and pos is None:
              st.error("No se pudo calcular la posición de los nodos para el gráfico.")
         return None 
@@ -212,20 +201,48 @@ def create_precise_lattice_figure(parsed_structure: dict):
     return fig
 
 # --- Interfaz de Usuario con Streamlit ---
-st.set_page_config(page_title="Context Grid DAX Visualizer", layout="wide")
+st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide") # Título de pestaña
 
-st.title("📊 Visualizador del Reticulado de Contexto DAX")
+# MODIFICACIÓN DEL TÍTULO PRINCIPAL:
+st.title("📊 Visualizador del Reticulado en Cálculos Visuales DAX")
+
+# MODIFICACIÓN DEL TEXTO INTRODUCTORIO:
 st.markdown("""
 Esta herramienta te ayuda a visualizar la estructura jerárquica (el "reticulado") 
-definida por una cláusula `WITH VISUAL SHAPE` de DAX. Pega tu código abajo.
+definida por la Tabla Virtual en conjunto con la cláusula `WITH VISUAL SHAPE` de DAX. 
+Pega tu código abajo.
 """)
 
-# Sección de diagnóstico simplificada en la sidebar:
-st.sidebar.subheader("Estado del Motor de Layout")
-if HAS_PYDOT_AND_GRAPHVIZ:
-    st.sidebar.success("✅ Layout jerárquico (Graphviz) activado.")
-else:
-    st.sidebar.warning("⚠️ Layout jerárquico (Graphviz) no disponible. Se usará layout alternativo.")
+# --- Inicio de la Barra Lateral (Sidebar) ---
+
+# RECUADRO 1: ACERCA DE (Texto modificado)
+st.sidebar.header("Acerca de")
+st.sidebar.info(
+    "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
+    "cuya funcionalidad actual es poder visualizar el 'Retiulado' o 'Lattice' "
+    "de la Tabla Virtual para Cálculos Visuales DAX, esto para ayudar a entender "
+    "la estructura lógica sobre la que operan dichos cálculos."
+)
+
+# RECUADRO 2: CURSO DAX (Nuevo)
+st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?") # Usamos subheader para diferenciarlo del principal "Acerca de"
+st.sidebar.markdown(
+    "El curso 'Magíster en Lenguaje DAX' de Power Elite Studio es curso/capacitación "
+    "número uno en español para dominar el Lenguaje DAX de básico a experto y estar "
+    "en constante actualización: "
+    "[clic aquí para conocer más](https://powerelite.studio/cursos/magister-en-lenguaje-dax/)."
+)
+
+# RECUADRO 3: AUTOR (Nuevo)
+st.sidebar.subheader("Autor")
+st.sidebar.markdown(
+    "Microsoft MVP Miguel Caballero, [www.powerelite.studio](https://www.powerelite.studio)"
+)
+
+# (Se eliminó la sección "Estado del Motor de Layout" de la sidebar según la solicitud implícita)
+# La variable HAS_PYDOT_AND_GRAPHVIZ sigue siendo usada internamente para la lógica del layout.
+
+# --- Fin de la Barra Lateral (Sidebar) ---
 
 
 ejemplo_dax = """AXIS rows
@@ -246,19 +263,21 @@ dax_clause_input = st.text_area(
 
 if st.button("🔍 Generar Gráfico del Reticulado"):
     if dax_clause_input.strip():
+        # Si Graphviz no está disponible, la función create_precise_lattice_figure
+        # ya maneja el fallback y muestra un error si la llamada a graphviz_layout falla.
+        if not HAS_PYDOT_AND_GRAPHVIZ:
+             st.warning("⚠️ Layout jerárquico (Graphviz) no disponible o no detectado. Se usará un layout alternativo.")
+             
         with st.spinner("Analizando DAX y generando gráfico... ⏳"):
             parsed_struct = parse_visual_shape(dax_clause_input)
             
-            # Es útil mostrar la estructura parseada incluso si el gráfico falla o está vacío
             st.subheader("Estructura Parseada (para referencia):")
             st.json(parsed_struct)
 
             if not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS"):
                 st.warning("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal del reticulado.")
-                # Podríamos optar por no llamar a create_precise_lattice_figure aquí
             elif not parsed_struct.get("ROWS") or not parsed_struct.get("COLUMNS"):
                  st.warning("Se requieren campos tanto en ROWS como en COLUMNS para el reticulado completo de intersecciones. Se mostrará la jerarquía de un solo eje si está definida.")
-                 # Intentar graficar lo que hay (la función create_precise_lattice_figure manejará un solo eje sin intersecciones)
                  fig = create_precise_lattice_figure(parsed_struct)
                  if fig:
                      st.subheader("Gráfico del Reticulado (parcial):")
@@ -266,20 +285,11 @@ if st.button("🔍 Generar Gráfico del Reticulado"):
                  else:
                      st.info("No se generó ningún gráfico (posiblemente solo nodo raíz).")
             else:
-                # Caso normal con ROWS y COLUMNS
                 fig = create_precise_lattice_figure(parsed_struct)
                 if fig:
                     st.subheader("Gráfico del Reticulado:")
                     st.pyplot(fig)
                 else:
-                    # Este caso es si create_precise_lattice_figure devuelve None
-                    # (ej. solo nodo raíz o error no capturado antes, aunque debería ser raro)
                     st.error("No se pudo generar la figura del gráfico.")
     else:
         st.warning("Por favor, introduce una cláusula DAX para visualizar.")
-
-st.sidebar.header("Acerca de")
-st.sidebar.info(
-    "Esta aplicación es un MVP para visualizar el 'Context Grid' de los cálculos visuales en DAX. "
-    "Ayuda a entender la estructura lógica sobre la que operan dichos cálculos."
-)
