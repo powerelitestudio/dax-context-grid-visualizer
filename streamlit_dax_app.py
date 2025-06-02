@@ -3,48 +3,32 @@ import re
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib # Necesario para configurar el backend
-import os # Importar os para verificar el PATH (opcional para diagnóstico futuro)
-import sys # Importar sys para la versión de Python (opcional para diagnóstico futuro)
 
 # Configurar Matplotlib para que no intente usar un backend interactivo en el servidor
-# Esto es importante para evitar errores en entornos sin GUI como Streamlit Cloud.
 try:
     matplotlib.use('Agg')
 except Exception as e:
     # Este print irá a los logs del servidor de Streamlit si hay un problema aquí.
+    # No es visible para el usuario final en la UI.
     print(f"Advertencia al configurar matplotlib.use('Agg'): {e}")
 
-
-# --- SECCIÓN DE DIAGNÓSTICO DE PYDOTPLUS/GRAPHVIZ (se mostrará en la sidebar) ---
-# Es importante que esta sección se ejecute para definir HAS_PYDOT_AND_GRAPHVIZ globalmente.
-HAS_PYDOT_AND_GRAPHVIZ_FLAG_INIT = False # Bandera inicial
+# Variable global para el estado de Graphviz/Pydot
+HAS_PYDOT_AND_GRAPHVIZ = False
 try:
-    import pydotplus
-    # No mostramos mensajes de éxito aquí para no llenar la sidebar innecesariamente
-    # a menos que haya un problema.
+    import pydotplus # Necesario para que NetworkX interactúe con Graphviz via nx_pydot
+    import pydot # NetworkX puede intentar importar 'pydot' directamente
     
-    graphviz_check_result = pydotplus.find_graphviz() 
-    
-    if graphviz_check_result and 'dot' in graphviz_check_result and graphviz_check_result['dot'] is not None:
-        # Si 'dot' es encontrado, intentamos importar graphviz_layout.
-        # Este import puede fallar si NetworkX no tiene bien pydotplus o si hay otro problema.
+    # Verifica si pydotplus puede encontrar los ejecutables de Graphviz
+    # y si la función de layout de NetworkX se puede importar.
+    if pydotplus.find_graphviz() and pydotplus.find_graphviz().get('dot'):
         from networkx.drawing.nx_pydot import graphviz_layout
-        HAS_PYDOT_AND_GRAPHVIZ_FLAG_INIT = True # Todo parece estar bien
-    else:
-        # Si find_graphviz() falla o no encuentra 'dot'.
-        HAS_PYDOT_AND_GRAPHVIZ_FLAG_INIT = False
-        # Los mensajes de error específicos se mostrarán en la UI principal si se intenta usar.
-
-except ImportError as ie:
-    # Falló la importación de pydotplus o nx_pydot
-    HAS_PYDOT_AND_GRAPHVIZ_FLAG_INIT = False
-except Exception as e_diag:
-    # Otra excepción durante el chequeo
-    HAS_PYDOT_AND_GRAPHVIZ_FLAG_INIT = False
-# --- FIN DE SECCIÓN DE DIAGNÓSTICO ---
-
-# Variable global que usarán las funciones y la UI
-HAS_PYDOT_AND_GRAPHVIZ = HAS_PYDOT_AND_GRAPHVIZ_FLAG_INIT
+        HAS_PYDOT_AND_GRAPHVIZ = True
+except ImportError:
+    # pydotplus, pydot o nx_pydot.graphviz_layout no se pudieron importar
+    HAS_PYDOT_AND_GRAPHVIZ = False
+except Exception:
+    # Otra excepción durante el chequeo (ej. find_graphviz falla)
+    HAS_PYDOT_AND_GRAPHVIZ = False
 
 
 def parse_visual_shape(visual_shape_clause: str):
@@ -81,7 +65,6 @@ def create_precise_lattice_figure(parsed_structure: dict):
     """
     G = nx.DiGraph()
     
-    # Usar la variable global HAS_PYDOT_AND_GRAPHVIZ definida arriba
     if HAS_PYDOT_AND_GRAPHVIZ:
         G.graph['graph'] = {
             'rankdir': 'TB', 'splines': 'spline',
@@ -180,7 +163,7 @@ def create_precise_lattice_figure(parsed_structure: dict):
 
     num_nodes = G.number_of_nodes()
     if num_nodes <= 1: 
-        st.info("No hay suficientes nodos para generar un gráfico significativo (solo nodo raíz o ninguno).")
+        # No mostrar error en UI aquí, se maneja en la UI principal si fig es None
         return None 
 
     base_node_size = 2000 
@@ -194,25 +177,20 @@ def create_precise_lattice_figure(parsed_structure: dict):
     layout_engine_used = "Spring Layout (inicial)" 
 
     if HAS_PYDOT_AND_GRAPHVIZ and G.number_of_nodes() > 0 :
-        # Este mensaje aparecerá en el panel principal cuando se intente generar el gráfico.
-        st.info("ℹ️ Intentando usar `graphviz_layout` con `prog='dot'`...")
         try:
-            # Re-importar localmente por si acaso, aunque la bandera global debería ser suficiente.
-            from networkx.drawing.nx_pydot import graphviz_layout 
+            from networkx.drawing.nx_pydot import graphviz_layout # Asegurar importación local
             pos = graphviz_layout(G, prog='dot')
             layout_engine_used = "Graphviz 'dot' Layout ✨"
-            st.success("✅ `graphviz_layout` con `prog='dot'` parece haber funcionado para calcular posiciones.")
         except Exception as e_layout:
+            # Este error SÍ se muestra en la UI principal si ocurre
             st.error(f"❌ Falló el intento de usar `graphviz_layout(G, prog='dot')`: {type(e_layout).__name__}: {e_layout}")
             st.warning("Se usará 'spring_layout' como alternativa debido al error anterior.")
             pos = None 
             layout_engine_used = "Spring Layout (excepción en dot)"
     
     if pos is None and G.number_of_nodes() > 0: 
-        if not layout_engine_used.endswith("(excepción en dot)"): # Solo mostrar si no es por error de dot
-            st.info("ℹ️ Calculando 'spring_layout' como alternativa...")
         pos = nx.spring_layout(G, k=2.5/max(1, (G.number_of_nodes()**0.5)), iterations=100, seed=42)
-        if not layout_engine_used.endswith("(excepción en dot)"):
+        if not layout_engine_used.endswith("(excepción en dot)"): # Solo actualizar si no fue por error de dot
              layout_engine_used = "Spring Layout (fallback general)"
     
     if G.number_of_nodes() > 0 and pos is not None:
@@ -224,10 +202,11 @@ def create_precise_lattice_figure(parsed_structure: dict):
                                arrows=True, arrowstyle='-|>', arrowsize=10) 
         ax.set_title(f"Diagrama de Reticulado (Motor: {layout_engine_used})", fontsize=14)
     else:
-        # Este caso no debería darse si retornamos None antes para num_nodes <=1
-        # Pero lo dejamos por si acaso pos es None por otra razón.
-        st.error("No se pudo calcular la posición de los nodos para el gráfico.")
-        return None # Devuelve None si no se pudo generar el gráfico
+        # Si pos es None pero hay nodos, es un problema de layout no manejado antes.
+        # Ya retornamos None si num_nodes <= 1.
+        if num_nodes > 1 and pos is None:
+             st.error("No se pudo calcular la posición de los nodos para el gráfico.")
+        return None 
     
     fig.tight_layout() 
     return fig
@@ -241,16 +220,12 @@ Esta herramienta te ayuda a visualizar la estructura jerárquica (el "reticulado
 definida por una cláusula `WITH VISUAL SHAPE` de DAX. Pega tu código abajo.
 """)
 
-# Sección de diagnóstico en la sidebar (movida aquí para que se muestre al inicio)
-st.sidebar.subheader("Estado de Graphviz/Pydot")
+# Sección de diagnóstico simplificada en la sidebar:
+st.sidebar.subheader("Estado del Motor de Layout")
 if HAS_PYDOT_AND_GRAPHVIZ:
-    st.sidebar.success("🎉 Graphviz y pydotplus parecen estar listos para el layout jerárquico!")
-    # Podríamos añadir aquí la info de find_graphviz si queremos, pero mantenemos simple.
-    # diagnostic_info = pydotplus.find_graphviz() # Asumimos que pydotplus está importado
-    # if diagnostic_info and diagnostic_info.get('dot'):
-    #    st.sidebar.caption(f"Dot path: {diagnostic_info['dot']}")
+    st.sidebar.success("✅ Layout jerárquico (Graphviz) activado.")
 else:
-    st.sidebar.error("⚠️ Graphviz/pydotplus no detectados correctamente. El layout jerárquico ('dot') podría no funcionar y se usará un layout alternativo.")
+    st.sidebar.warning("⚠️ Layout jerárquico (Graphviz) no disponible. Se usará layout alternativo.")
 
 
 ejemplo_dax = """AXIS rows
@@ -271,29 +246,35 @@ dax_clause_input = st.text_area(
 
 if st.button("🔍 Generar Gráfico del Reticulado"):
     if dax_clause_input.strip():
-        # La advertencia principal sobre Graphviz ahora se maneja con la info de la sidebar
-        # y los mensajes dentro de create_precise_lattice_figure.
-        
         with st.spinner("Analizando DAX y generando gráfico... ⏳"):
             parsed_struct = parse_visual_shape(dax_clause_input)
             
+            # Es útil mostrar la estructura parseada incluso si el gráfico falla o está vacío
             st.subheader("Estructura Parseada (para referencia):")
             st.json(parsed_struct)
 
             if not parsed_struct.get("ROWS") and not parsed_struct.get("COLUMNS"):
-                st.warning("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal.")
-            # No necesitamos la siguiente condición elif ya que create_precise_lattice_figure maneja el caso de 1 solo eje
-            # (no dibujará intersecciones, pero sí la jerarquía de ese eje).
+                st.warning("La entrada no definió campos para ROWS ni para COLUMNS. No se puede generar el gráfico principal del reticulado.")
+                # Podríamos optar por no llamar a create_precise_lattice_figure aquí
+            elif not parsed_struct.get("ROWS") or not parsed_struct.get("COLUMNS"):
+                 st.warning("Se requieren campos tanto en ROWS como en COLUMNS para el reticulado completo de intersecciones. Se mostrará la jerarquía de un solo eje si está definida.")
+                 # Intentar graficar lo que hay (la función create_precise_lattice_figure manejará un solo eje sin intersecciones)
+                 fig = create_precise_lattice_figure(parsed_struct)
+                 if fig:
+                     st.subheader("Gráfico del Reticulado (parcial):")
+                     st.pyplot(fig)
+                 else:
+                     st.info("No se generó ningún gráfico (posiblemente solo nodo raíz).")
             else:
+                # Caso normal con ROWS y COLUMNS
                 fig = create_precise_lattice_figure(parsed_struct)
                 if fig:
                     st.subheader("Gráfico del Reticulado:")
                     st.pyplot(fig)
                 else:
-                    # create_precise_lattice_figure ya habrá mostrado un st.info si no hay nodos suficientes.
-                    # Podemos añadir un mensaje genérico si fig es None por otra razón.
-                    if G.number_of_nodes() > 1: # Si G se hubiera pasado o accedido
-                         st.error("Ocurrió un error al generar la figura del gráfico.")
+                    # Este caso es si create_precise_lattice_figure devuelve None
+                    # (ej. solo nodo raíz o error no capturado antes, aunque debería ser raro)
+                    st.error("No se pudo generar la figura del gráfico.")
     else:
         st.warning("Por favor, introduce una cláusula DAX para visualizar.")
 
