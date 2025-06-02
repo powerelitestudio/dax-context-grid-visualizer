@@ -231,17 +231,16 @@ definida por la Tabla Virtual + cláusula `WITH VISUAL SHAPE` de DAX.
 st.sidebar.header("Acerca de")
 st.sidebar.info(
     "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
-    "cuya funcionalidad actual es poder visualizar el 'Retiulado' o 'Lattice' "
-    "de la Tabla Virtual para Cálculos Visuales DAX, esto para ayudar a entender "
-    "la estructura lógica sobre la que operan dichos cálculos."
+    "cuya funcionalidad actual es poder visualizar el 'Reticulado' o 'Lattice' "
+    "de la Tabla Virtual para Cálculos Visuales DAX."
 )
 
 st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
-texto_curso_intro = "El curso "
+texto_curso_intro = "El Curso "
 nombre_curso_html_link = '<strong><u><a href="https://powerelite.studio/cursos/magister-en-lenguaje-dax/" target="_blank">Magíster en Lenguaje DAX</a></u></strong>'
 texto_curso_descripcion = (
-    " de Power Elite Studio es curso/capacitación "
-    "número uno en español para dominar el Lenguaje DAX de básico a experto y estar "
+    " de Power Elite Studio es el "
+    "número uno en español para dominar el Lenguaje DAX de básico a experto, y estar "
     "en constante actualización."
 )
 curso_dax_texto_completo_html = texto_curso_intro + nombre_curso_html_link + texto_curso_descripcion
@@ -268,13 +267,13 @@ st.sidebar.markdown(html_logo_pes_sidebar, unsafe_allow_html=True)
 
 st.sidebar.subheader("Autor")
 st.sidebar.markdown(
-    "Microsoft MVP Miguel Caballero, [www.powerelite.studio](https://www.powerelite.studio)"
+    "Ing. Miguel Caballero, MVP Microsoft [www.powerelite.studio](https://www.powerelite.studio)"
 )
 # --- Fin de la Barra Lateral (Sidebar) ---
 
 
 ejemplo_dax = """AXIS rows
-    GROUP [Anio]
+    GROUP [Año]
     GROUP [Trimestre]
     GROUP [Mes]
 AXIS columns
