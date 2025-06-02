@@ -201,10 +201,13 @@ def create_precise_lattice_figure(parsed_structure: dict):
     return fig
 
 # --- Interfaz de Usuario con Streamlit ---
-st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide") # Título de pestaña
+st.set_page_config(page_title="Visualizador de Reticulado DAX", layout="wide")
+
+# MODIFICACIÓN: AÑADIR LOGO
+st.image("https://powerelite.studio/wp-content/uploads/2025/05/LogoPowerEliteSquareWithName.png", width=200) # Ajusta el 'width' según necesites
 
 # MODIFICACIÓN DEL TÍTULO PRINCIPAL:
-st.title("📊 Visualizador del Reticulado en Cálculos Visuales DAX")
+st.title("Visualizador del Reticulado en DAX")
 
 # MODIFICACIÓN DEL TEXTO INTRODUCTORIO:
 st.markdown("""
@@ -213,9 +216,7 @@ definida por la Tabla Virtual en conjunto con la cláusula `WITH VISUAL SHAPE` d
 Pega tu código abajo.
 """)
 
-# --- Inicio de la Barra Lateral (Sidebar) ---
-
-# RECUADRO 1: ACERCA DE (Texto modificado)
+# --- Barra Lateral (Sidebar) ---
 st.sidebar.header("Acerca de")
 st.sidebar.info(
     "Esta aplicación es un MVP de la app 'Context Grid' de Power Elite Studio, "
@@ -224,8 +225,7 @@ st.sidebar.info(
     "la estructura lógica sobre la que operan dichos cálculos."
 )
 
-# RECUADRO 2: CURSO DAX (Nuevo)
-st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?") # Usamos subheader para diferenciarlo del principal "Acerca de"
+st.sidebar.subheader("¿Quieres aprender Lenguaje DAX?")
 st.sidebar.markdown(
     "El curso 'Magíster en Lenguaje DAX' de Power Elite Studio es curso/capacitación "
     "número uno en español para dominar el Lenguaje DAX de básico a experto y estar "
@@ -233,14 +233,18 @@ st.sidebar.markdown(
     "[clic aquí para conocer más](https://powerelite.studio/cursos/magister-en-lenguaje-dax/)."
 )
 
-# RECUADRO 3: AUTOR (Nuevo)
 st.sidebar.subheader("Autor")
 st.sidebar.markdown(
     "Microsoft MVP Miguel Caballero, [www.powerelite.studio](https://www.powerelite.studio)"
 )
 
-# (Se eliminó la sección "Estado del Motor de Layout" de la sidebar según la solicitud implícita)
-# La variable HAS_PYDOT_AND_GRAPHVIZ sigue siendo usada internamente para la lógica del layout.
+# Comentamos la sección de estado del motor de layout para una UI más limpia,
+# ya que la lógica de fallback y los errores se manejan en la función de graficado.
+# st.sidebar.subheader("Estado del Motor de Layout")
+# if HAS_PYDOT_AND_GRAPHVIZ:
+#    st.sidebar.success("✅ Layout jerárquico (Graphviz) activado.")
+# else:
+#    st.sidebar.warning("⚠️ Layout jerárquico (Graphviz) no disponible. Se usará layout alternativo.")
 
 # --- Fin de la Barra Lateral (Sidebar) ---
 
@@ -263,10 +267,8 @@ dax_clause_input = st.text_area(
 
 if st.button("🔍 Generar Gráfico del Reticulado"):
     if dax_clause_input.strip():
-        # Si Graphviz no está disponible, la función create_precise_lattice_figure
-        # ya maneja el fallback y muestra un error si la llamada a graphviz_layout falla.
-        if not HAS_PYDOT_AND_GRAPHVIZ:
-             st.warning("⚠️ Layout jerárquico (Graphviz) no disponible o no detectado. Se usará un layout alternativo.")
+        if not HAS_PYDOT_AND_GRAPHVIZ: # Mostrar advertencia si Graphviz no está listo
+             st.warning("⚠️ Layout jerárquico (Graphviz) no disponible o no detectado. Se usará un layout alternativo. Asegúrate de que Graphviz esté instalado y en el PATH del sistema donde se ejecuta esta app si es localmente, o que esté incluido en `packages.txt` si se despliega en Streamlit Cloud.")
              
         with st.spinner("Analizando DAX y generando gráfico... ⏳"):
             parsed_struct = parse_visual_shape(dax_clause_input)
